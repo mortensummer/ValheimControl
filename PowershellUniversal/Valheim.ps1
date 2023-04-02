@@ -1,12 +1,13 @@
 
 # Change this appropriately
-#$Status = Get-ValheimStatus
-
-#If($Status.Active){
-#    New-UDAlert -Severity Warning -Text "Valheim Dedicated Server is running - be careful with your stop command!"
-#}else{
-#    New-UDAlert -Severity Info -Text "Valheim Dedicated Server is NOT Running."
-#}
+<#
+$Status = Get-ValheimStatus
+If($Status.Active){
+    Write-Status "INITIAL STATE: Server is running"
+}else{
+    Write-Status "INITIAL STATE: Server is stopped"
+}
+#>
 
 New-UDButton -Text 'Start' -OnClick {
     If(-Not $(Get-ValheimStatus).Active){
@@ -54,7 +55,16 @@ New-UDButton -Text 'Status' -OnClick {
     }
 }
 
-New-UDTextbox -Id 'Status' -Multiline -FullWidth -RowsMax 10
+New-UDButton -Text 'Server Log' -OnClick {
+    Write-Status "Displaying $Logfile"
+    $LogOutput = Get-Content $Logfile -Raw
+    Show-UDModal -Content {
+        New-UDTextbox -Value $LogOutput -Multiline -FullWidth -RowsMax 20 -Disabled
+        New-UDButton -Text "Close" -OnClick {Hide-UDModal}
+    } -Persistent -FullWidth
+}
+
+New-UDTextbox -Id 'Status' -Multiline -FullWidth -RowsMax 10 -Disabled
 
 New-UDButton -Text 'Clear History' -OnClick {
     Set-UDElement -Id 'Status' -Properties @{
