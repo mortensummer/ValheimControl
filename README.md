@@ -4,7 +4,10 @@
 A script to manage the running of a Valheim Dedicated Server. 
 Stores some settings in config.json.
 Requires [SteamCMD](https://developer.valvesoftware.com/wiki/SteamCMD#Downloading_SteamCMD) for the updating process. 
+
 This was written so it could be controlled via [PowerShell Universal](https://www.ironmansoftware.com/powershell-universal/), so my wife could start\stop the server with ease in my absence. 
+
+Thanks to [Thomas Mjelde](https://github.com/tmmjelde) for his [script](https://github.com/tmmjelde/Valheim-Dedicated-Windows) that got me started. 
 
 ## Examples
 ### Start the Valheim Dedicated Server
