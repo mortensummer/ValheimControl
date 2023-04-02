@@ -46,3 +46,6 @@ Update this config file with desired settings.
     "logfile": "server.log"
 }
 ```
+
+## PowerShell Universal
+Also in here are the .ps1 files for a PowerShell Universal Dashboard. 

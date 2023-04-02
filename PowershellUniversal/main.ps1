@@ -1,12 +1,4 @@
-[CmdletBinding()]
-param (
-    [Parameter(Mandatory=$true)]
-    [ValidateSet("Start", "Stop", "Update", "Status")]
-    [String]$Action
-)
-
-# Change this appropriately
-$ConfigFile = "D:\Repos\ValheimControl\config.json"
+$ConfigFile = "C:\ValheimServer\control.config"
 $Config = Get-Content $ConfigFile | ConvertFrom-Json
 
 $LogFile = $(join-path ($config.forceinstalldir) ($config.logfile))
@@ -21,13 +13,14 @@ Function Stop-Valheim($ProcessID) {
         #Sends Ctrl+C to the Valheim window, which saves the server first and shuts down cleanly
         $encodedCommand = [Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes("Add-Type -Names 'w' -Name 'k' -M '[DllImport(""kernel32.dll"")]public static extern bool FreeConsole();[DllImport(""kernel32.dll"")]public static extern bool AttachConsole(uint p);[DllImport(""kernel32.dll"")]public static extern bool SetConsoleCtrlHandler(uint h, bool a);[DllImport(""kernel32.dll"")]public static extern bool GenerateConsoleCtrlEvent(uint e, uint p);public static void SendCtrlC(uint p){FreeConsole();AttachConsole(p);GenerateConsoleCtrlEvent(0, 0);}';[w.k]::SendCtrlC($ProcessID)"))
         start-process powershell.exe -argument "-nologo -noprofile -executionpolicy bypass -EncodedCommand $encodedCommand" -NoNewWindow
-        write-host "Waiting for Process $($ProcessID) to stop." -NoNewline
+        write-Status "Waiting for Process $($ProcessID) to stop."
         Do {
-            Write-host "." -NoNewline            
-            Start-Sleep -Seconds 1
+            #Write-host "." -NoNewline            
+            #Start-Sleep -Seconds 1
+            New-UDProgress -Circular -ProgressColor Blue
         }
         while (get-process valheim_server -ErrorAction SilentlyContinue)
-        Write-Output "`nPID '$($ProcessID)' stopped."        
+        Write-Status "PID '$($ProcessID)' stopped."        
 }
 
 Function Get-ValheimStatus{
@@ -43,46 +36,18 @@ Function Get-ValheimStatus{
     Return $Results
 }   
 
-Switch ($Action){
-    "Start" {
-        If(-Not $(Get-ValheimStatus).Active){
-            Write-Output "Starting..."
-            Start-Valheim
-            Get-ValheimStatus
-        }else{
-            Write-Output "Already started"
-        }
-        
-    }
-    "Stop" {
-        If($(Get-ValheimStatus).Active){
-            Write-Output "Stopping..."
-            Stop-Valheim $(Get-ValheimStatus).ID
-        }else{
-            Write-Output "Not Started - doing nothing."
-        }
-    }
-    "Update" {
-        $ValheimWasRunning = $false
-        If($(Get-ValheimStatus).Active){
-            Write-Output "Stopping server..."
-            Stop-Valheim $(Get-ValheimStatus).ID
-            $ValheimWasRunning = $true
-        }
-        Write-Output "Updating server..."
-        Start-Process "$($config.steamcmd)" -ArgumentList "+force_install_dir `"$($config.forceinstalldir)`" +login anonymous +app_update $($config.gameid) validate +exit" -wait
-        If ($ValheimWasRunning){
-            Start-Valheim
-        }
-    }
+Function Write-Status([string]$Message) {
+        $Input = " $(Get-Date): $Message"
+        $ExistingValue = (Get-UDElement -Id 'Status').Value
 
-    "Status" {
-        $Status = Get-ValheimStatus
-        If($Status.Active -eq $true){
-            Write-Output "Valheim Server running on Process ID '$($Status.ID)'"
-        }
-        else{
-            Write-Output "Valheim Server is not running."
-        }
-    }
+        Set-UDElement -Id 'Status' -Properties @{
+            Value = "$Input `n $ExistingValue"
+        }    
 }
+
+New-UDDashboard -Title 'PowerShell Universal' -Pages @(
+    # Create a page using the menu to the right ->   
+    # Reference the page here with Get-UDPage
+    Get-UDPage -Name 'Valheim'
+)
+
