@@ -1,0 +1,10 @@
+{
+    "servername":  "myservername",
+    "world": "Dedicated",
+    "port": "2456",
+    "password": "asecretpasswordplease",
+    "gameid":  "896660",
+    "steamcmd":  "C:\\Steamcmd\\steamcmd.exe",
+    "forceinstalldir":  "C:\\valheim-server",
+    "logfile": "server.log"
+}
